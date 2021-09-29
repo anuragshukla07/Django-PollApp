@@ -1,23 +1,28 @@
-from django.shortcuts import get_object_or_404,render
-from django.http import HttpResponse ,Http404,HttpResponseRedirect
-# from django.template import loader
-from .models import Question,Choice
+from django.http import HttpResponseRedirect
+from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
+from django.views import generic
 
-def index(request):
-    latestQuestionList = Question.objects.order_by('pub_date')[:5]
-    # template = loader.get_template('PollApp/index.html')
-    context = {
-        'latestQuestionList': latestQuestionList}
-    return render(request,'PollApp/index.html',context)
+from .models import Choice, Question
 
-def detail(request, question_id):
-    question = get_object_or_404(Question, pk=question_id)
-    return render(request,'PollApp/detail.html', {'question':question})
 
-def results(request, question_id):
-    question = get_object_or_404(Question, pk=question_id)
-    return render(request, 'PollApp/results.html', {'question': question})
+class IndexView(generic.ListView):
+    template_name = 'PollApp/index.html'
+    context_object_name = 'latestQuestionList'
+
+    def get_queryset(self):
+        """Return the last five published questions."""
+        return Question.objects.order_by('-pub_date')[:5]
+
+
+class DetailView(generic.DetailView):
+    model = Question
+    template_name = 'PollApp/detail.html'
+
+
+class ResultsView(generic.DetailView):
+    model = Question
+    template_name = 'PollApp/results.html'
 
 def vote(request, question_id):
     question = get_object_or_404(Question, pk=question_id)
